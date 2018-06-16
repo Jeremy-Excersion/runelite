@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Woox <https://github.com/wooxsolo>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,26 +22,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.api;
+package net.runelite.client.plugins.droplogger.data;
 
-public enum InventoryID
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.Instant;
+
+public class EventOccurrenceCollection
 {
-	INVENTORY(93),
-	EQUIPMENT(94),
-	BANK(95),
-	PUZZLE_BOX(140),
-	REWARD_CHEST(141),
-	CHAMBERS_OF_XERIC_CHEST(581);
+	@Getter
+	private String eventName;
 
-	private final int id;
+	@Getter
+	private int count;
 
-	InventoryID(int id)
+	@Getter
+	@Setter
+	private long value;
+
+	@Getter
+	@Setter
+	private Instant firstOccurrence;
+
+	@Getter
+	@Setter
+	private Instant lastOccurrence;
+
+	public EventOccurrenceCollection(String eventName)
 	{
-		this.id = id;
+		this.eventName = eventName;
+		this.count = 0;
+		this.value = 0;
 	}
 
-	public int getId()
+	public void addOccurrence(Instant instant)
 	{
-		return id;
+		count++;
+
+		if (firstOccurrence == null || firstOccurrence.compareTo(instant) > 0)
+		{
+			firstOccurrence = instant;
+		}
+		if (lastOccurrence == null || lastOccurrence.compareTo(instant) < 0)
+		{
+			lastOccurrence = instant;
+		}
 	}
 }

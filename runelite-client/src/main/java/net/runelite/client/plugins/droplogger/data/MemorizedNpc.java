@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Woox <https://github.com/wooxsolo>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,26 +22,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.api;
+package net.runelite.client.plugins.droplogger.data;
 
-public enum InventoryID
+import lombok.Getter;
+import net.runelite.api.NPC;
+import net.runelite.api.NPCComposition;
+
+public class MemorizedNpc extends MemorizedActor
 {
-	INVENTORY(93),
-	EQUIPMENT(94),
-	BANK(95),
-	PUZZLE_BOX(140),
-	REWARD_CHEST(141),
-	CHAMBERS_OF_XERIC_CHEST(581);
+	@Getter
+	private NPCComposition npcComposition;
 
-	private final int id;
-
-	InventoryID(int id)
+	public MemorizedNpc(NPC npc)
 	{
-		this.id = id;
-	}
-
-	public int getId()
-	{
-		return id;
+		super(npc);
+		NPCComposition composition = npc.getComposition();
+		if (composition == null)
+		{
+			composition = composition.transform();
+		}
+		this.npcComposition = composition;
 	}
 }
