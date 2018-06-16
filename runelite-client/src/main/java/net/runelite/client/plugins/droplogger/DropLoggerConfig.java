@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Woox <https://github.com/wooxsolo>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,26 +22,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.api;
+package net.runelite.client.plugins.droplogger;
 
-public enum InventoryID
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
+
+@ConfigGroup(
+        keyName = "droplogger",
+        name = "Drop Logger",
+        description = "Configuration for the drop logging plugin"
+)
+public interface DropLoggerConfig extends Config
 {
-	INVENTORY(93),
-	EQUIPMENT(94),
-	BANK(95),
-	PUZZLE_BOX(140),
-	REWARD_CHEST(141),
-	CHAMBERS_OF_XERIC_CHEST(581);
+    @ConfigItem(
+            position = 1,
+            keyName = "hideChambersOfXeric",
+            name = "Hide Chambers of Xeric NPCs",
+            description = "Don't show loot from NPCs inside Chambers of Xeric"
+    )
+    default boolean hideChambersOfXeric()
+    {
+        return true;
+    }
 
-	private final int id;
-
-	InventoryID(int id)
-	{
-		this.id = id;
-	}
-
-	public int getId()
-	{
-		return id;
-	}
+    @ConfigItem(
+            position = 2,
+            keyName = "hideBarbarianAssault",
+            name = "Hide Barbarian Assault NPCs",
+            description = "Don't show loot from NPCs inside Barbarian Assault"
+    )
+    default boolean hideBarbarianAssault()
+    {
+        return true;
+    }
 }

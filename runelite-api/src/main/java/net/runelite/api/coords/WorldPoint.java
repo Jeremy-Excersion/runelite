@@ -31,36 +31,32 @@ import net.runelite.api.Perspective;
 import net.runelite.api.Point;
 
 /**
- * A three-dimensional point representing the coordinate of a Tile.
- * <p>
- * WorldPoints are immutable. Methods that modify the properties create a new
- * instance.
+ * WorldPoint is a Three-Dimensional point representing the location of a Tile
  */
 @Value
 public class WorldPoint
 {
 	/**
-	 * X-axis coordinate.
+	 * The X coordinate of the Point.
+	 * Units are in tiles
 	 */
 	private final int x;
 
 	/**
-	 * Y-axis coordinate.
+	 * The Y coordinate of the Point.
+	 * Units are in tiles
 	 */
 	private final int y;
 
 	/**
-	 * The plane level of the Tile, also referred as z-axis coordinate.
-	 *
-	 * @see Client#getPlane()
+	 * The plane coordinate of the Point.
 	 */
 	private final int plane;
 
 	/**
-	 * Offsets the x-axis coordinate by the passed value.
-	 *
-	 * @param dx the offset
-	 * @return new instance
+	 * Returns a WorldPoint offset on x from this point
+	 * @param dx offset
+	 * @return
 	 */
 	public WorldPoint dx(int dx)
 	{
@@ -68,10 +64,9 @@ public class WorldPoint
 	}
 
 	/**
-	 * Offsets the y-axis coordinate by the passed value.
-	 *
-	 * @param dy the offset
-	 * @return new instance
+	 * Returns a WorldPoint offset on y from this point
+	 * @param dy offset
+	 * @return
 	 */
 	public WorldPoint dy(int dy)
 	{
@@ -79,24 +74,15 @@ public class WorldPoint
 	}
 
 	/**
-	 * Offsets the plane by the passed value.
-	 *
-	 * @param dz the offset
-	 * @return new instance
+	 * Returns a WorldPoint offset on z from this point
+	 * @param dz offset
+	 * @return
 	 */
 	public WorldPoint dz(int dz)
 	{
 		return new WorldPoint(x, y, plane + dz);
 	}
 
-	/**
-	 * Checks whether a tile is located in the current scene.
-	 *
-	 * @param client the client
-	 * @param x the tiles x coordinate
-	 * @param y the tiles y coordinate
-	 * @return true if the tile is in the scene, false otherwise
-	 */
 	public static boolean isInScene(Client client, int x, int y)
 	{
 		int baseX = client.getBaseX();
@@ -108,23 +94,13 @@ public class WorldPoint
 		return x >= baseX && x < maxX && y >= baseY && y < maxY;
 	}
 
-	/**
-	 * Checks whether this tile is located in the current scene.
-	 *
-	 * @param client the client
-	 * @return true if this tile is in the scene, false otherwise
-	 */
 	public boolean isInScene(Client client)
 	{
 		return client.getPlane() == plane && isInScene(client, x, y);
 	}
 
 	/**
-	 * Gets the coordinate of the tile that contains the passed local point.
-	 *
-	 * @param client the client
-	 * @param local the local coordinate
-	 * @return the tile coordinate containing the local point
+	 * Returns a WorldPoint containing the passed LocalPoint
 	 */
 	public static WorldPoint fromLocal(Client client, LocalPoint local)
 	{
@@ -132,28 +108,22 @@ public class WorldPoint
 	}
 
 	/**
-	 * Gets the coordinate of the tile that contains the passed local point.
-	 *
-	 * @param client the client
-	 * @param x the local x-axis coordinate
-	 * @param y the local x-axis coordinate
-	 * @param plane the plane
-	 * @return the tile coordinate containing the local point
+	 * Returns a WorldPoint containing the passed local coordinates
 	 */
 	public static WorldPoint fromLocal(Client client, int x, int y, int plane)
 	{
 		return new WorldPoint(
-			(x >>> Perspective.LOCAL_COORD_BITS) + client.getBaseX(),
-			(y >>> Perspective.LOCAL_COORD_BITS) + client.getBaseY(),
-			plane
+				(x >>> Perspective.LOCAL_COORD_BITS) + client.getBaseX(),
+				(y >>> Perspective.LOCAL_COORD_BITS) + client.getBaseY(),
+				plane
 		);
 	}
 
 	/**
-	 * Gets the shortest distance from this point to a WorldArea.
+	 * Find the shortest distance from this point to a WorldArea
 	 *
-	 * @param other the world area
-	 * @return the shortest distance
+	 * @param other The WorldArea to find the distance to
+	 * @return Returns the shortest distance
 	 */
 	public int distanceTo(WorldArea other)
 	{
@@ -161,14 +131,11 @@ public class WorldPoint
 	}
 
 	/**
-	 * Gets the distance between this point and another.
-	 * <p>
-	 * If the other point is not on the same plane, this method will return
-	 * {@link Integer#MAX_VALUE}. If ignoring the plane is wanted, use the
-	 * {@link #distanceTo2D(WorldPoint)} method.
+	 * Find the distance from this point to another point. Returns Integer.MAX_VALUE if other is on
+	 * a different plane.
 	 *
-	 * @param other other point
-	 * @return the distance
+	 * @param other
+	 * @return
 	 */
 	public int distanceTo(WorldPoint other)
 	{
@@ -180,14 +147,12 @@ public class WorldPoint
 		return distanceTo2D(other);
 	}
 
+
 	/**
 	 * Find the distance from this point to another point.
-	 * <p>
-	 * This method disregards the plane value of the two tiles and returns
-	 * the simple distance between the X-Z coordinate pairs.
 	 *
-	 * @param other other point
-	 * @return the distance
+	 * @param other
+	 * @return
 	 */
 	public int distanceTo2D(WorldPoint other)
 	{
@@ -195,20 +160,14 @@ public class WorldPoint
 	}
 
 	/**
-	 * Gets the coordinate of the tile that contains the passed local point.
-	 *
-	 * @param client the client
-	 * @param x the local x-axis coordinate
-	 * @param y the local x-axis coordinate
-	 * @param plane the plane
-	 * @return the tile coordinate containing the local point
+	 * Returns a WorldPoint from the passed region coords
 	 */
 	public static WorldPoint fromRegion(Client client, int x, int y, int plane)
 	{
 		return new WorldPoint(
-			x + client.getBaseX(),
-			y + client.getBaseY(),
-			plane
+				x + client.getBaseX(),
+				y + client.getBaseY(),
+				plane
 		);
 	}
 
@@ -218,13 +177,25 @@ public class WorldPoint
 		return new Point(x, y);
 	}
 
-	/**
-	 * Gets the ID of the region containing this tile.
-	 *
-	 * @return the region ID
-	 */
 	public int getRegionID()
 	{
 		return ((x >> 6) << 8) | (y >> 6);
+	}
+
+	@Override
+	public boolean equals(Object other)
+	{
+		if (other == null || !(other instanceof WorldPoint))
+		{
+			return false;
+		}
+		WorldPoint wp2 = (WorldPoint)other;
+		return this.x == wp2.x && this.y == wp2.y && this.plane == wp2.plane;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return (plane << 30) | (y << 15) | x;
 	}
 }
