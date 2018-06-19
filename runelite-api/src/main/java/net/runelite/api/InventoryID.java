@@ -30,8 +30,17 @@ public enum InventoryID
 	EQUIPMENT(94),
 	BANK(95),
 	PUZZLE_BOX(140),
+	/**
+	 * Clue Scroll / Barrows reward chest inventory.
+	 */
 	REWARD_CHEST(141),
-	CHAMBERS_OF_XERIC_CHEST(581);
+	/**
+	 * Raids reward chest inventory.
+	 */
+	CHAMBERS_OF_XERIC_CHEST(581),
+	/**
+	 * Theater of Blood reward chest inventory (Raids 2)
+	 */
 
 	private final int id;
 
