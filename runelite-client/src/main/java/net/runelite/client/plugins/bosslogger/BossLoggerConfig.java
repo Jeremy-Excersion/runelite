@@ -38,17 +38,6 @@ import java.awt.Color;
 
 public interface BossLoggerConfig extends Config
 {
-	@ConfigItem(
-			keyName = "useDatabaseStorage",
-			name = "Database Storage",
-			description = "Should we store/receive tracked Loot via the RuneLite Database?",
-			hidden = true
-	)
-
-	default boolean useDatabaseStorage()
-	{
-		return true;
-	}
 
 	@ConfigItem(
 		keyName = "recordBarrowsChest",

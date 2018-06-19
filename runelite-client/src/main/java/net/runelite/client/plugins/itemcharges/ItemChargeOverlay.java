@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import javax.inject.Inject;
-import net.runelite.api.ItemID;
 import net.runelite.api.Query;
 import net.runelite.api.queries.EquipmentItemQuery;
 import net.runelite.api.queries.InventoryWidgetItemQuery;
@@ -54,23 +53,22 @@ import net.runelite.client.util.QueryRunner;
 class ItemChargeOverlay extends Overlay
 {
 	private final QueryRunner queryRunner;
-	private final ItemChargePlugin itemChargePlugin;
 	private final ItemChargeConfig config;
 
 	@Inject
-	ItemChargeOverlay(QueryRunner queryRunner, ItemChargePlugin itemChargePlugin, ItemChargeConfig config)
+	ItemChargeOverlay(QueryRunner queryRunner, ItemChargeConfig config)
 	{
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		this.queryRunner = queryRunner;
-		this.itemChargePlugin = itemChargePlugin;
 		this.config = config;
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!displayOverlay())
+		if (!config.showTeleportCharges() && !config.showFungicideCharges() && !config.showImpCharges()
+			&& !config.showWateringCanCharges() && !config.showWaterskinCharges())
 		{
 			return null;
 		}
@@ -79,41 +77,27 @@ class ItemChargeOverlay extends Overlay
 
 		for (WidgetItem item : getChargeWidgetItems())
 		{
-			int charges;
-			if (item.getId() == ItemID.DODGY_NECKLACE)
+			ItemWithCharge chargeItem = ItemWithCharge.findItem(item.getId());
+			if (chargeItem == null)
 			{
-				if (!config.showDodgyCount())
-				{
-					continue;
-				}
-
-				charges = itemChargePlugin.getDodgyCharges();
-			}
-			else
-			{
-				ItemWithCharge chargeItem = ItemWithCharge.findItem(item.getId());
-				if (chargeItem == null)
-				{
-					continue;
-				}
-
-				ItemChargeType type = chargeItem.getType();
-				if ((type == TELEPORT && !config.showTeleportCharges())
-					|| (type == FUNGICIDE_SPRAY && !config.showFungicideCharges())
-					|| (type == IMPBOX && !config.showImpCharges())
-					|| (type == WATERCAN && !config.showWateringCanCharges())
-					|| (type == WATERSKIN && !config.showWaterskinCharges()))
-				{
-					continue;
-				}
-
-				charges = chargeItem.getCharges();
+				continue;
 			}
 
+			ItemChargeType type = chargeItem.getType();
+			if ((type == TELEPORT && !config.showTeleportCharges())
+				|| (type == FUNGICIDE_SPRAY && !config.showFungicideCharges())
+				|| (type == IMPBOX && !config.showImpCharges())
+				|| (type == WATERCAN && !config.showWateringCanCharges())
+				|| (type == WATERSKIN && !config.showWaterskinCharges()))
+			{
+				continue;
+			}
+
+			int charges = chargeItem.getCharges();
 			final Rectangle bounds = item.getCanvasBounds();
 			final TextComponent textComponent = new TextComponent();
 			textComponent.setPosition(new Point(bounds.x, bounds.y + 16));
-			textComponent.setText(charges < 0 ? "?" : String.valueOf(charges));
+			textComponent.setText(String.valueOf(charges));
 			textComponent.setColor(getColor(charges));
 			textComponent.render(graphics);
 		}
@@ -151,11 +135,5 @@ class ItemChargeOverlay extends Overlay
 			color = config.lowWarningolor();
 		}
 		return color;
-	}
-
-	private boolean displayOverlay()
-	{
-		return config.showTeleportCharges() || config.showDodgyCount() || config.showFungicideCharges()
-			|| config.showImpCharges() || config.showWateringCanCharges() || config.showWaterskinCharges();
 	}
 }

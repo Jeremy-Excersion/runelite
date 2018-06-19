@@ -35,8 +35,8 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.Skill;
 import net.runelite.api.VarPlayer;
+import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
@@ -46,7 +46,6 @@ import net.runelite.api.widgets.Widget;
 import static net.runelite.api.widgets.WidgetID.COMBAT_GROUP_ID;
 import net.runelite.api.widgets.WidgetInfo;
 import static net.runelite.api.widgets.WidgetInfo.TO_GROUP;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -73,9 +72,6 @@ public class AttackStylesPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private ClientThread clientThread;
-
-	@Inject
 	private AttackStylesConfig config;
 
 	@Inject
@@ -97,26 +93,18 @@ public class AttackStylesPlugin extends Plugin
 
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			clientThread.invokeLater(this::start);
+			updateWarnedSkills(config.warnForAttack(), Skill.ATTACK);
+			updateWarnedSkills(config.warnForStrength(), Skill.STRENGTH);
+			updateWarnedSkills(config.warnForDefence(), Skill.DEFENCE);
+			updateWarnedSkills(config.warnForRanged(), Skill.RANGED);
+			updateWarnedSkills(config.warnForMagic(), Skill.MAGIC);
+			updateAttackStyle(
+				client.getVar(Varbits.EQUIPPED_WEAPON_TYPE),
+				client.getVar(VarPlayer.ATTACK_STYLE),
+				client.getVar(Varbits.DEFENSIVE_CASTING_MODE));
+			updateWarning(false);
+			processWidgets();
 		}
-	}
-
-	private void start()
-	{
-		updateWarnedSkills(config.warnForAttack(), Skill.ATTACK);
-		updateWarnedSkills(config.warnForStrength(), Skill.STRENGTH);
-		updateWarnedSkills(config.warnForDefence(), Skill.DEFENCE);
-		updateWarnedSkills(config.warnForRanged(), Skill.RANGED);
-		updateWarnedSkills(config.warnForMagic(), Skill.MAGIC);
-		attackStyleVarbit = client.getVar(VarPlayer.ATTACK_STYLE);
-		equippedWeaponTypeVarbit = client.getVar(Varbits.EQUIPPED_WEAPON_TYPE);
-		castingModeVarbit = client.getVar(Varbits.DEFENSIVE_CASTING_MODE);
-		updateAttackStyle(
-			equippedWeaponTypeVarbit,
-			attackStyleVarbit,
-			castingModeVarbit);
-		updateWarning(false);
-		processWidgets();
 	}
 
 	@Override
@@ -141,6 +129,11 @@ public class AttackStylesPlugin extends Plugin
 	public void hideWidgets(WidgetHiddenChanged event)
 	{
 		if (event.getWidget().isSelfHidden() || TO_GROUP(event.getWidget().getId()) != COMBAT_GROUP_ID)
+		{
+			return;
+		}
+
+		if (widgetsToHide == null)
 		{
 			return;
 		}
@@ -308,14 +301,13 @@ public class AttackStylesPlugin extends Plugin
 		// Iterate over attack styles
 		for (int i = 0; i < attackStyles.length; i++)
 		{
-			AttackStyle attackStyle = attackStyles[i];
-			if (attackStyle == null)
+			if (attackStyles[i] == null)
 			{
 				continue;
 			}
 
 			boolean warnedSkill = false;
-			for (Skill skill : attackStyle.getSkills())
+			for (Skill skill : attackStyles[i].getSkills())
 			{
 				if (warnedSkills.contains(skill))
 				{
@@ -325,12 +317,12 @@ public class AttackStylesPlugin extends Plugin
 			}
 
 			// Magic staves defensive casting mode
-			if (attackStyle == AttackStyle.DEFENSIVE_CASTING || !enabled)
+			if (equippedWeaponType == WeaponType.TYPE_18)
 			{
-				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_BOX, enabled && warnedSkill);
-				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_ICON, enabled && warnedSkill);
-				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_SHIELD, enabled && warnedSkill);
-				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_TEXT, enabled && warnedSkill);
+				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_BOX, enabled && (warnedSkills.contains(Skill.DEFENCE) || warnedSkill));
+				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_ICON, enabled && (warnedSkills.contains(Skill.DEFENCE) || warnedSkill));
+				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_SHIELD, enabled && (warnedSkills.contains(Skill.DEFENCE) || warnedSkill));
+				widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_DEFENSIVE_SPELL_TEXT, enabled && (warnedSkills.contains(Skill.DEFENCE) || warnedSkill));
 			}
 
 			// Remove appropriate combat option
@@ -352,7 +344,7 @@ public class AttackStylesPlugin extends Plugin
 					widgetsToHide.put(equippedWeaponType, WidgetInfo.COMBAT_SPELLS, enabled && warnedSkill);
 					break;
 				default:
-					// 5 can be defensive casting
+					log.warn("Unreachable default case for equipped weapon type attack styles");
 			}
 		}
 	}

@@ -92,50 +92,10 @@ public interface ItemChargeConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "showDodgyCount",
-		name = "Dodgy Necklace Count",
-		description = "Configures if Dodgy Necklace charge count is shown",
-		position = 6
-	)
-	default boolean showDodgyCount()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "dodgyNotification",
-		name = "Dodgy Necklace Notification",
-		description = "Configures if the dodgy necklace breaking notification is shown",
-		position = 7
-	)
-	default boolean dodgyNotification()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "dodgyNecklace",
-		name = "",
-		description = "",
-		hidden = true
-	)
-	default int dodgyNecklace()
-	{
-		return -1;
-	}
-
-	@ConfigItem(
-		keyName = "dodgyNecklace",
-		name = "",
-		description = ""
-	)
-	void dodgyNecklace(int dodgyNecklace);
-
-	@ConfigItem(
 		keyName = "showImpCharges",
 		name = "Show Imp-in-a-box charges",
 		description = "Configures if imp-in-a-box item charges is shown",
-		position = 8
+		position = 6
 	)
 	default boolean showImpCharges()
 	{
@@ -146,7 +106,7 @@ public interface ItemChargeConfig extends Config
 		keyName = "showFungicideCharges",
 		name = "Show Fungicide Charges",
 		description = "Configures if fungicide item charges is shown",
-		position = 9
+		position = 7
 	)
 	default boolean showFungicideCharges()
 	{
@@ -157,7 +117,7 @@ public interface ItemChargeConfig extends Config
 		keyName = "showWateringCanCharges",
 		name = "Show Watering Can Charges",
 		description = "Configures if watering can item charge is shown",
-		position = 10
+		position = 8
 	)
 	default boolean showWateringCanCharges()
 	{
@@ -168,7 +128,7 @@ public interface ItemChargeConfig extends Config
 		keyName = "showWaterskinCharges",
 		name = "Show Waterskin Charges",
 		description = "Configures if waterskin item charge is shown",
-		position = 11
+		position = 9
 	)
 	default boolean showWaterskinCharges()
 	{
@@ -179,7 +139,7 @@ public interface ItemChargeConfig extends Config
 		keyName = "recoilNotification",
 		name = "Ring of Recoil Notification",
 		description = "Configures if the ring of recoil breaking notification is shown",
-		position = 12
+		position = 10
 	)
 	default boolean recoilNotification()
 	{
