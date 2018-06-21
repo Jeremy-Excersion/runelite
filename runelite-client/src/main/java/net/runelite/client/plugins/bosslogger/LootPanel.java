@@ -87,9 +87,7 @@ class LootPanel extends JPanel
                     boolean shouldStack = item.isStackable() || de.getItemAmount() > 1;
                     AsyncBufferedImage icon = itemManager.getImage(de.getItemId(), de.getItemAmount(), shouldStack);
                     int price;
-                    try
-                    {
-                        // Get item price
+
                         ItemPrice IM = itemManager.getItemPrice(item.getId());
                         if (item.getId() == ItemID.COINS_995)
                         {
@@ -103,12 +101,6 @@ class LootPanel extends JPanel
                         {
                             price = IM.getPrice();
                         }
-                    }
-                    catch (IOException e)
-                    {
-                        // Fallback price = General Store Buy Price (You selling it to the store)
-                        price = item.getPrice();
-                    }
 
                     // Create the new LootRecord
                     LootRecord entry = new LootRecord(item.getName(), item.getId(), de.getItemAmount(), price, icon, item);
