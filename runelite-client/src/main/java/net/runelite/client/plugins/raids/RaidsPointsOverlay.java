@@ -33,6 +33,7 @@ import static net.runelite.client.plugins.raids.RaidsPlugin.POINTS_FORMAT;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
+import net.runelite.client.ui.overlay.components.ComponentConstants;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
@@ -44,13 +45,15 @@ public class RaidsPointsOverlay extends Overlay
 	@Inject
 	private RaidsPlugin plugin;
 
+	private final RaidsConfig config;
 	private final PanelComponent panel = new PanelComponent();
 
 	@Inject
-	public RaidsPointsOverlay()
+	public RaidsPointsOverlay(RaidsConfig config)
 	{
 		setPosition(OverlayPosition.TOP_RIGHT);
 		setPriority(OverlayPriority.HIGH);
+		this.config = config;
 	}
 
 	@Override
@@ -66,19 +69,55 @@ public class RaidsPointsOverlay extends Overlay
 
 		panel.getChildren().clear();
 		panel.getChildren().add(LineComponent.builder()
-			.left("Total:")
-			.right(POINTS_FORMAT.format(totalPoints))
-			.build());
+				.left("Total:")
+				.right(POINTS_FORMAT.format(totalPoints))
+				.build());
 
 		panel.getChildren().add(LineComponent.builder()
-			.left(client.getLocalPlayer().getName() + ":")
-			.right(POINTS_FORMAT.format(personalPoints))
-			.build());
+				.left(client.getLocalPlayer().getName() + ":")
+				.right(POINTS_FORMAT.format(personalPoints))
+				.build());
 
 		panel.getChildren().add(LineComponent.builder()
-			.left("Party size:")
-			.right(String.valueOf(client.getVar(Varbits.RAID_PARTY_SIZE)))
-			.build());
+				.left("Party size:")
+				.right(String.valueOf(client.getVar(Varbits.RAID_PARTY_SIZE)))
+				.build());
+
+		if (config.uniqueChance())
+		{
+			double chance = Math.min(totalPoints / 7125.0, 80.0);
+			double chance2 = Math.min((totalPoints - 570000.0) / 7125.0, 80.0);
+			double chance3 = Math.min((totalPoints - 1140000.0) / 7125.0, 80.0);
+
+			this.panel.setPreferredSize(new Dimension(ComponentConstants.STANDARD_WIDTH + 10, 0));
+			panel.getChildren().add(LineComponent.builder()
+					.left("Unique Chance:")
+					.right(String.valueOf(Math.round(chance * 10.0) / 10.0) + "%")
+					.build());
+
+			if (totalPoints >= 570000.0)
+			{
+				this.panel.setPreferredSize(new Dimension(ComponentConstants.STANDARD_WIDTH + 20, 0));
+				panel.getChildren().add(LineComponent.builder()
+						.left("Unique Chance 2:")
+						.right(String.valueOf(Math.round(chance2 * 10.0) / 10.0) + "%")
+						.build());
+
+				if (totalPoints >= 1140000.0)
+				{
+					panel.getChildren().add(LineComponent.builder()
+							.left("Unique Chance 3:")
+							.right(String.valueOf(Math.round(chance3 * 10.0) / 10.0) + "%")
+							.build());
+				}
+			}
+
+
+		}
+		else
+		{
+			this.panel.setPreferredSize(new Dimension(ComponentConstants.STANDARD_WIDTH, 0));
+		}
 
 		return panel.render(graphics);
 	}
