@@ -26,7 +26,6 @@ package net.runelite.client.plugins.bosslogger;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -46,158 +45,166 @@ import net.runelite.http.api.item.ItemPrice;
 @Getter
 class LootPanel extends JPanel
 {
-    private ArrayList<LootEntry> records;
-    private Map<Integer, ArrayList<UniqueItem>> uniqueMap;
-    private Map<String, LootRecord> consolidated;
-    private ItemManager itemManager;
+	private ArrayList<LootEntry> records;
+	private Map<Integer, ArrayList<UniqueItem>> uniqueMap;
+	private Map<String, LootRecord> consolidated;
+	private ItemManager itemManager;
 
-    LootPanel(ArrayList<LootEntry> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
-    {
-        this.records = records;
-        this.consolidated = new HashMap<>();
-        this.uniqueMap = uniqueMap;
-        this.itemManager = itemManager;
+	LootPanel(ArrayList<LootEntry> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
+	{
+		this.records = records;
+		this.consolidated = new HashMap<>();
+		this.uniqueMap = uniqueMap;
+		this.itemManager = itemManager;
 
-        setLayout(new GridBagLayout());
-        setBorder(new EmptyBorder(0, 10, 0, 10));
-        setBackground(ColorScheme.DARK_GRAY_COLOR);
+		setLayout(new GridBagLayout());
+		setBorder(new EmptyBorder(0, 10, 0, 10));
+		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        createConsolidatedArray();
-        sortUniqueMap();
-        createPanel(this);
-    }
+		createConsolidatedArray();
+		sortUniqueMap();
+		createPanel(this);
+	}
 
-    private void createConsolidatedArray()
-    {
-        // Clear consolidated array
-        this.consolidated.clear();
+	private void createConsolidatedArray()
+	{
+		// Clear consolidated array
+		this.consolidated.clear();
 
-        // Compile the DropEntries for unique consolidated totals
-        this.records.forEach(rec ->
-        {
-            // Convert DropEntries records into consolidated entries
-            ArrayList<DropEntry> drops = rec.getDrops();
-            drops.forEach(de ->
-            {
-                ItemComposition item = itemManager.getItemComposition(de.getItemId());
-                LootRecord uniq = this.consolidated.get(item.getName());
-                if (uniq == null)
-                {
-                    // Create new entry
-                    boolean shouldStack = item.isStackable() || de.getItemAmount() > 1;
-                    AsyncBufferedImage icon = itemManager.getImage(de.getItemId(), de.getItemAmount(), shouldStack);
-                    int price;
+		// Compile the DropEntries for unique consolidated totals
+		this.records.forEach(rec ->
+		{
+			// Convert DropEntries records into consolidated entries
+			ArrayList<DropEntry> drops = rec.getDrops();
+			drops.forEach(de ->
+			{
+				ItemComposition item = itemManager.getItemComposition(de.getItemId());
+				LootRecord uniq = this.consolidated.get(item.getName());
+				if (uniq == null)
+				{
+					// Create new entry
+					boolean shouldStack = item.isStackable() || de.getItemAmount() > 1;
+					AsyncBufferedImage icon = itemManager.getImage(de.getItemId(), de.getItemAmount(), shouldStack);
+					int price;
+					try
+					{
+						// Get item price
+						ItemPrice IM = itemManager.getItemPrice(item.getId());
+						if (item.getId() == ItemID.COINS_995)
+						{
+							price = 1;
+						}
+						else if (IM == null)
+						{
+							price = 0;
+						}
+						else
+						{
+							price = IM.getPrice();
+						}
+					}
+					catch (Exception e)
+					{
+						// Fallback price = General Store Buy Price (You selling it to the store)
+						price = item.getPrice();
+					}
 
-                        ItemPrice IM = itemManager.getItemPrice(item.getId());
-                        if (item.getId() == ItemID.COINS_995)
-                        {
-                            price = 1;
-                        }
-                        else if (IM == null)
-                        {
-                            price = 0;
-                        }
-                        else
-                        {
-                            price = IM.getPrice();
-                        }
+					// Create the new LootRecord
+					LootRecord entry = new LootRecord(item.getName(), item.getId(), de.getItemAmount(), price, icon, item);
+					this.consolidated.put(item.getName(), entry);
+				}
+				else
+				{
+					// Update Entry
+					uniq.incrementAmount(uniq, de.getItemAmount());
+					uniq.updateIconAmount(uniq, itemManager);
+				}
+			});
+		});
 
-                    // Create the new LootRecord
-                    LootRecord entry = new LootRecord(item.getName(), item.getId(), de.getItemAmount(), price, icon, item);
-                    this.consolidated.put(item.getName(), entry);
-                }
-                else
-                {
-                    // Update Entry
-                    uniq.incrementAmount(uniq, de.getItemAmount());
-                    uniq.updateIconAmount(uniq, itemManager);
-                }
-            });
-        });
+		// Sort consolidated entries by Name
+		this.consolidated = this.consolidated.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByKey())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+	}
 
-        // Sort consolidated entries by Name
-        this.consolidated = this.consolidated.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-    }
+	// Sort UniqueItems Map by Key
+	private void sortUniqueMap()
+	{
+		this.uniqueMap = this.uniqueMap.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByKey())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+	}
 
-    // Sort UniqueItems Map by Key
-    private void sortUniqueMap()
-    {
-        this.uniqueMap = this.uniqueMap.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-    }
+	private void createPanel(LootPanel panel)
+	{
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridy = 0;
 
-    private void createPanel(LootPanel panel)
-    {
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 1;
-        c.gridx = 0;
-        c.gridy = 0;
+		// Attach all the Unique Items first
+		this.uniqueMap.forEach((setPosition, set) ->
+		{
+			UniqueItemPanel p = new UniqueItemPanel(set, this.consolidated, panel.itemManager);
+			panel.add(p, c);
+			c.gridy++;
+		});
 
-        // Attach all the Unique Items first
-        this.uniqueMap.forEach((setPosition, set) ->
-        {
-            UniqueItemPanel p = new UniqueItemPanel(set, this.consolidated, panel.itemManager);
-            panel.add(p, c);
-            c.gridy++;
-        });
+		// Attach Kill Count Panel
+		if (this.records.size() > 0)
+		{
+			int amount = this.records.size();
+			LootEntry entry = this.records.get(amount - 1);
+			LootRecordPanel p = new LootRecordPanel("Current Killcount:", entry.getKillCount());
+			panel.add(p, c);
+			c.gridy++;
+			LootRecordPanel p2 = new LootRecordPanel("Kills Logged:", amount);
+			panel.add(p2, c);
+			c.gridy++;
+		}
 
-        // Attach Kill Count Panel
-        if (this.records.size() > 0)
-        {
-            int amount = this.records.size();
-            LootEntry entry = this.records.get(amount - 1);
-            LootRecordPanel p = new LootRecordPanel("Current Killcount:", entry.getKillCount());
-            panel.add(p, c);
-            c.gridy++;
-            LootRecordPanel p2 = new LootRecordPanel("Kills Logged:", amount);
-            panel.add(p2, c);
-            c.gridy++;
-        }
+		// Track total price of all tracked items for this panel
+		long totalValue = 0;
+		// Ensure it is placed on top of all other panels
+		int totalValueIndex = c.gridy;
+		c.gridy++;
+		// Loop over each unique item and create a LootRecordPanel
+		for ( Map.Entry<String, LootRecord> entry : this.consolidated.entrySet())
+		{
+			LootRecord item = entry.getValue();
+			LootRecordPanel p = new LootRecordPanel(item);
+			panel.add(p, c);
+			c.gridy++;
+			totalValue = totalValue + item.getTotal();
+		}
 
-        // Track total price of all tracked items for this panel
-        long totalValue = 0;
-        // Ensure it is placed on top of all other panels
-        int totalValueIndex = c.gridy;
-        c.gridy++;
-        // Loop over each unique item and create a LootRecordPanel
-        for ( Map.Entry<String, LootRecord> entry : this.consolidated.entrySet())
-        {
-            LootRecord item = entry.getValue();
-            LootRecordPanel p = new LootRecordPanel(item);
-            panel.add(p, c);
-            c.gridy++;
-            totalValue = totalValue + item.getTotal();
-        }
+		// Only add the total value element if it has something useful to display
+		if (totalValue > 0)
+		{
+			c.gridy = totalValueIndex;
+			LootRecordPanel totalPanel = new LootRecordPanel(totalValue);
+			panel.add(totalPanel, c);
+		}
+	}
 
-        // Only add the total value element if it has something useful to display
-        if (totalValue > 0)
-        {
-            c.gridy = totalValueIndex;
-            LootRecordPanel totalPanel = new LootRecordPanel(totalValue);
-            panel.add(totalPanel, c);
-        }
-    }
+	// Update Loot Panel with Updated Records
+	void updateRecords(ArrayList<LootEntry> records)
+	{
+		this.records = records;
+		refreshPanel();
+		this.repaint();
+		this.revalidate();
+	}
 
-    // Update Loot Panel with Updated Records
-    void updateRecords(ArrayList<LootEntry> records)
-    {
-        this.records = records;
-        refreshPanel();
-        this.repaint();
-        this.revalidate();
-    }
-
-    // Refresh the Panel without updating any data
-    private void refreshPanel()
-    {
-        this.removeAll();
-        createConsolidatedArray();
-        createPanel(this);
-    }
+	// Refresh the Panel without updating any data
+	private void refreshPanel()
+	{
+		this.removeAll();
+		createConsolidatedArray();
+		createPanel(this);
+	}
 }

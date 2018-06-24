@@ -35,7 +35,6 @@ import lombok.Getter;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
-
 import net.runelite.client.ui.ColorScheme;
 
 import java.awt.AlphaComposite;
@@ -54,6 +53,7 @@ class UniqueItemPanel extends JPanel
 	private ItemManager itemManager;
 	private ArrayList<UniqueItem> items;
 	private Map<String, LootRecord> loots;
+
 	private final float alphaMissing = 0.35f;
 	private final float alphaHas = 1.0f;
 
@@ -65,6 +65,7 @@ class UniqueItemPanel extends JPanel
 		this.items = items;
 		this.loots = loots;
 		this.itemManager = itemManager;
+
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());

@@ -38,7 +38,6 @@ import java.awt.Color;
 
 public interface BossLoggerConfig extends Config
 {
-
 	@ConfigItem(
 		keyName = "recordBarrowsChest",
 		name = "Barrows Chest Loot",
